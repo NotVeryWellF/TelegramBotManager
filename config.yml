@@ -9,3 +9,6 @@ jwt:
   expiry_hours: 0
   expiry_minutes: 60
   expiry_seconds: 0
+mongo:
+  host: 0.0.0.0
+  port: 27017

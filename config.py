@@ -6,9 +6,13 @@ with open("config.yml") as file:
 
 HOST = cfg['api_server']['host']
 PORT = cfg['api_server']['port']
+
 JWT_SECRET = cfg['jwt']['secret']
 JWT_ALGORITHM = cfg['jwt']['algorithm']
 MAX_BOTS_NUMBER = int(cfg['api_server']['max_number_of_bots'])
+
+MONGO_HOST = cfg['mongo']['host']
+MONGO_PORT = cfg['mongo']['port']
 
 try:
     EXPIRY = int(cfg['jwt']['expiry_days'])*24*60*60 + int(cfg['jwt']['expiry_hours'])*60*60 +\
