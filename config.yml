@@ -4,3 +4,7 @@ api_server:
 jwt:
   secret: please_change_me_i_am_insecure
   algorithm: HS256
+  expiry_days: 0
+  expiry_hours: 0
+  expiry_minutes: 60
+  expiry_seconds: 0
