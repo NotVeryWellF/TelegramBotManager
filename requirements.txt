@@ -1,2 +1,5 @@
 pytelegrambotapi
 jwt
+fastapi
+uvicorn
+pyyaml
