@@ -1,13 +1,17 @@
 from fastapi import FastAPI, Depends
 import json
+
+import config
 from backend.auth.auth_handler import signJWT, decodeJWT
 from backend.auth.auth_bearer import JWTBearer
+import telebot
+from threading import Thread
 
 app = FastAPI()
 users = []
 secret_data = "I am very secret data for the testing"
 bots = {}
-max_number_of_bots = 5
+RealBots = {}
 
 
 def check_user(data: dict) -> bool:
@@ -15,6 +19,10 @@ def check_user(data: dict) -> bool:
         if user["email"] == data["email"] and user["password"] == data["password"]:
             return True
     return False
+
+
+def start_bot(bot):
+    bot.polling(none_stop=True, interval=0)
 
 
 @app.get('/')
@@ -48,12 +56,24 @@ async def secret(auth: JWTBearer() = Depends(JWTBearer())) -> dict:
 @app.post('/add_bot')
 async def add_bot(bot_token: str, auth: JWTBearer() = Depends(JWTBearer())) -> dict:
     email = decodeJWT(auth)["email"]
-    if len(bots[email]["bots"]) == max_number_of_bots:
-        return {"error": "You already have max number of bots: {}".format(max_number_of_bots)}
+    if len(bots[email]["bots"]) == config.MAX_BOTS_NUMBER:
+        return {"error": "You already have max number of bots: {}".format(config.MAX_BOTS_NUMBER)}
     else:
         if bot_token in [bot["token"] for bot in bots[email]["bots"]]:
             return {"error": "You already have a bot with such token"}
         else:
+            try:
+                bot = telebot.TeleBot(bot_token)
+                RealBots[bots[email]["ID"] + 1] = bot
+
+                @bot.message_handler(content_types=['text'])
+                def get_text_messages(message):
+                    bot.send_message(message.from_user.id, message.text)
+
+                bot_thread = Thread(target=start_bot, args=(bot,), daemon=True)
+                bot_thread.start()
+            except:
+                return {"error": "Cannot create a bot"}
             bots[email]["bots"].append({"token": bot_token, "ID": bots[email]["ID"] + 1})
             bots[email]["ID"] += 1
             return {"message": "Bot was successfully added!"}
@@ -71,5 +91,8 @@ async def delete_bot(bot_id: int, auth: JWTBearer() = Depends(JWTBearer())) -> d
     for i in bots[email]["bots"]:
         if i["ID"] == bot_id:
             bots[email]["bots"].remove(i)
+            RealBots[bot_id].stop_bot()
+            RealBots[bot_id] = None
             return {"message": "bot {} was successfully deleted from your list".format(bot_id)}
     return {"error": "bot with such ID does not exist"}
+
