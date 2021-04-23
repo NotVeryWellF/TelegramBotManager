@@ -1,5 +1,5 @@
 pytelegrambotapi
-jwt
+PyJWT
 fastapi
 uvicorn
 pyyaml
