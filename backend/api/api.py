@@ -1,8 +1,5 @@
-import time
-
-from fastapi import FastAPI, Depends, Body
+from fastapi import FastAPI, Depends, Body, HTTPException
 from fastapi.encoders import jsonable_encoder
-import json
 import config
 from backend.auth.auth_handler import signJWT, decodeJWT
 from backend.auth.auth_bearer import JWTBearer
@@ -20,6 +17,7 @@ from backend.database.database import (
 )
 
 from backend.models import bot, user
+from backend.models.ResponseModels import SimpleResponse, TokenResponse, BotListResponse
 
 
 app = FastAPI()
@@ -39,8 +37,8 @@ def generateResponse(data, message):
     }
 
 
-def generateError(error, code, message):
-    return {"error": error, "code": code, "message": message}
+def generateError(code, message):
+    raise HTTPException(status_code=code, detail=message)
 
 
 async def check_user(user: user.UserSchema = Body(...)) -> dict:
@@ -49,36 +47,36 @@ async def check_user(user: user.UserSchema = Body(...)) -> dict:
         return retrieved_user
 
 
-@app.get('/')
+@app.get('/', tags=["GET"], response_model=SimpleResponse)
 async def root():
     return generateResponse("", "Simple Telegram Bot Manager")
 
 
-@app.post('/signup')
+@app.post('/signup', tags=["POST"], response_model=TokenResponse)
 async def create_user(user: user.UserSchema = Body(...)):
     user = jsonable_encoder(user)
     try:
         new_user = await add_user(user)
     except:
-        return generateError("An error occurred", 404, "User already exists, try again")
+        generateError(403, "User already exists, try again")
     return generateResponse(signJWT(new_user["email"], new_user["id"]), "User was successfully added")
 
 
-@app.post('/login')
+@app.post('/login', tags=["POST"], response_model=TokenResponse)
 async def login(user: user.UserSchema = Body(...)):
     obtained_user = await check_user(user)
     if obtained_user:
         return generateResponse(signJWT(obtained_user["email"], obtained_user["id"]), "You logged in successfully")
     else:
-        return generateError("An error occurred", 404, "User with such email and password does not exist")
+        generateError(403, "User with such email and password does not exist")
 
 
-@app.get('/secret')
+@app.get('/secret', tags=["GET"], response_model=SimpleResponse)
 async def secret(auth: JWTBearer() = Depends(JWTBearer())) -> dict:
-    return generateResponse({"secret": secret_data}, "You successfully got our secret data)))")
+    return generateResponse(secret_data, "You successfully got our secret data)))")
 
 
-@app.get('/add_bot')
+@app.post('/add_bot', tags=["POST"], response_model=SimpleResponse)
 async def add_bot(bot_token: str, auth: JWTBearer() = Depends(JWTBearer())) -> dict:
     decoded_JWT = decodeJWT(auth)
     email = decoded_JWT['email']
@@ -86,12 +84,10 @@ async def add_bot(bot_token: str, auth: JWTBearer() = Depends(JWTBearer())) -> d
 
     user_bots = await all_user_bots(userID)
     if len(user_bots) == config.MAX_BOTS_NUMBER:
-        return generateError("An error occurred",
-                             404,
-                             "You already have max number of bots: {}".format(config.MAX_BOTS_NUMBER))
+        generateError(403, "You already have max number of bots: {}".format(config.MAX_BOTS_NUMBER))
     else:
         if bot_token in [bot["bot_token"] for bot in user_bots]:
-            return generateError("An error occurred", 404, "You already have a bot with such token")
+            generateError(403, "You already have a bot with such token")
         else:
             try:
                 bot = telebot.TeleBot(bot_token)
@@ -103,19 +99,19 @@ async def add_bot(bot_token: str, auth: JWTBearer() = Depends(JWTBearer())) -> d
                 bot_thread = Thread(target=start_bot, args=(bot,), daemon=True)
                 bot_thread.start()
             except:
-                return generateError("An error occurred", 404, "Cannot create a bot")
+                generateError(403, "Cannot create a bot")
 
             try:
                 new_bot = await add_bot_db({"bot_token": bot_token, "userID": userID})
             except:
                 bot.stop_bot()
-                return generateError("An error occurred", 404, "Cannot create a bot")
+                generateError(404, "Cannot create a bot")
 
             RunningBots[new_bot['id']] = bot
             return generateResponse("", "Bot {} was successfully added!".format(new_bot['id']))
 
 
-@app.get('/get_bot_list')
+@app.get('/get_bot_list', tags=["GET"], response_model=BotListResponse)
 async def bot_list(auth: JWTBearer() = Depends(JWTBearer())) -> dict:
     email = decodeJWT(auth)["email"]
     userID = decodeJWT(auth)["userID"]
@@ -123,7 +119,7 @@ async def bot_list(auth: JWTBearer() = Depends(JWTBearer())) -> dict:
     return generateResponse(user_bots, "All user's bots")
 
 
-@app.delete('/delete_bot')
+@app.delete('/delete_bot', tags=["DELETE"], response_model=SimpleResponse)
 async def delete_bot(bot_id: str, auth: JWTBearer() = Depends(JWTBearer())) -> dict:
     email = decodeJWT(auth)["email"]
     userID = decodeJWT(auth)["userID"]
@@ -136,6 +132,6 @@ async def delete_bot(bot_id: str, auth: JWTBearer() = Depends(JWTBearer())) -> d
                 RunningBots[bot_id] = None
                 return generateResponse("", "bot {} was successfully deleted from your list".format(bot_id))
             else:
-                return generateError("An error occurred", 404, "Cannot delete bot")
-    return generateError("An error occurred", 404, "bot with such ID does not exist")
+                generateError(403, "Cannot delete bot")
+    generateError(403, "bot with such ID does not exist")
 
