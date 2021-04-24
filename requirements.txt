@@ -7,3 +7,4 @@ jwt~=1.2.0
 pydantic~=1.8.1
 motor~=2.2.0
 pydantic[email]
+pymongo~=3.11.3
