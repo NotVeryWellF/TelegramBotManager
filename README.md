@@ -11,14 +11,14 @@
 для каждого нового добавленного бота просто создается отдельный поток, 
   бот отвечает на полученное сообщение тем же сообщением, при удалении бота поток останавливается
   
-### Возможности
+### Возможности:
 - Создать пользователя по уникальному email и паролю
 - Залогиниться по данным существующего пользователя
 - Добавить бота к юзеру (Не больше максимального количества, указанного в конфиге)
 - Удаление бота по его ID
 - Получение списка ботов пользователя
 
-### Как поднять
+### Как поднять:
 1. На вашем сервере или на другом хосте поднять Mongo\
 Инструкция для установки на Ubuntu:
 > https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/
@@ -47,7 +47,7 @@
 4. Запустить сервер
 > python3 server.py
 
-### Документация API
+### Документация API:
 1. Документация по API на SwaggerHub:
 > https://app.swaggerhub.com/apis-docs/NotVeryWellF/TelegramBotManager/0.1.0
 
@@ -143,9 +143,9 @@ CURL из `/docs`:
 Представляет собой GET запрос без всяких параметров, просто нужно быть авторизированным
 
 CURL из `/docs`:
-> curl -X 'GET' \
-  'http://0.0.0.0:8080/get_bot_list' \
-  -H 'accept: application/json' \
+> curl -X 'GET' \ \
+  'http://0.0.0.0:8080/get_bot_list' \ \
+  -H 'accept: application/json' \ \
   -H 'Authorization: Bearer `your_authorization_token`'
 
 Формат ответа:
@@ -173,9 +173,9 @@ CURL из `/docs`:
 `bot_id` - ID бота из базы данных (его можно получить из списка ботов пользователя)
 
 CURL из `/docs`:
-> curl -X 'DELETE' \
-  'http://0.0.0.0:8080/delete_bot?bot_id= `your_bot_id`' \
-  -H 'accept: application/json' \
+> curl -X 'DELETE' \ \
+  'http://0.0.0.0:8080/delete_bot?bot_id= `your_bot_id`' \ \
+  -H 'accept: application/json' \ \
   -H 'Authorization: Bearer `your_authorization_token`'
 
 Ответом идет простой ответ об успешном удалении бота
