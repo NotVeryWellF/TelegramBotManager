@@ -33,7 +33,7 @@
 > cd `path_to_repo` \
 > python3 -m venv venv \
 > source venv/bin/activate \
-> pip install -r requirements.txt
+> pip install -r requirements.txt \
 > pip install pydantic[email]
 3. Сконфигурировать данные сервера \
   Открыть `config.yml` файл конфигурации
