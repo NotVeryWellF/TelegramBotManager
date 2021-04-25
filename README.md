@@ -58,8 +58,8 @@
 #### Создание пользователя (`/signup`)
 Представляет собой POST запрос с телом:
 >{ \
->  "email": "new_email", \
->  "password": "password" \
+>  "email": "`some_email@email.email`", \
+>  "password": "`some_password`" \
 >}
 
 Важно: \
@@ -71,30 +71,29 @@ CURL из `/docs`:
   -H 'accept: application/json' \ \
   -H 'Content-Type: application/json' \ \
   -d '{ \
-  "email": "r@r.r", \
-  "password": "easy_to_crack_password" \
+  "email": "`some_email@email.email`", \
+  "password": "`some_password`" \
 }'
 
-Если логина нет в базе данных, то будет ошибка
+Если логин уже есть в базе данных, то будет ошибка
 
 Ответом будет Ваш Токен для авторизации и сообщение, что пользователь был успешно добавлен:
 
 Формат ответа:
 > { \
   "data": { \
-    "access_token": "your authorization token" \
+    "access_token": "`your_authorization_token`" \
   }, \
   "code": 200, \
   "message": "Some message for you" \
 }
 
-Для дальнейшего использования API вам понадобится полученный токен
 
 #### Вход по логину и паролю (`/login`)
 Представляет собой POST запрос с телом:
 >{ \
->  "email": "new_email", \
->  "password": "password" \
+>  "email": "`some_email@email.email`", \
+>  "password": "`some_password`" \
 >}
 
 CURL из `/docs`:
@@ -103,8 +102,8 @@ CURL из `/docs`:
   -H 'accept: application/json' \ \
   -H 'Content-Type: application/json' \ \
   -d '{ \
-  "email": "r@r.r", \
-  "password": "easy_to_crack_password" \
+  "email": "`some_email@email.email`", \
+  "password": "`some_password`" \
 }'
 
 Если логин и пароль есть в базе данных, то вам вернется токен для авторизации:
@@ -113,7 +112,7 @@ CURL из `/docs`:
 
 >{ \
   "data": { \
-    "access_token": "your authorization token" \
+    "access_token": "`your_authorization_token`" \
   }, \
   "code": 200, \
   "message": "Some message for you" \
@@ -128,9 +127,10 @@ CURL из `/docs`:
 `bot_token` - токен бота из BotFather
 
 CURL из `/docs`:
-> curl -X 'POST' \
-  'http://0.0.0.0:8080/add_bot?bot_token=some_bot_token' \ \
+> curl -X 'POST' \ \
+  'http://0.0.0.0:8080/add_bot?bot_token= `your_bot_token`' \ \
   -H 'accept: application/json' \ \
+  -H 'Authorization: Bearer `your_authorization_token`' \ \
   -d ''
 
 Если такого бота еще нет в базе данных и токен бота валидный, то он добавляется и запускается заглушка
@@ -143,9 +143,10 @@ CURL из `/docs`:
 Представляет собой GET запрос без всяких параметров, просто нужно быть авторизированным
 
 CURL из `/docs`:
-> curl -X 'GET' \ \
-  'http://0.0.0.0:8080/get_bot_list' \ \
-  -H 'accept: application/json'
+> curl -X 'GET' \
+  'http://0.0.0.0:8080/get_bot_list' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer `your_authorization_token`'
 
 Формат ответа:
 >{ \
@@ -172,9 +173,10 @@ CURL из `/docs`:
 `bot_id` - ID бота из базы данных (его можно получить из списка ботов пользователя)
 
 CURL из `/docs`:
-> curl -X 'DELETE' \ \
-  'http://0.0.0.0:8080/delete_bot?bot_id=some_bot_id' \ \
-  -H 'accept: application/json'
+> curl -X 'DELETE' \
+  'http://0.0.0.0:8080/delete_bot?bot_id= `your_bot_id`' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer `your_authorization_token`'
 
 Ответом идет простой ответ об успешном удалении бота
 
